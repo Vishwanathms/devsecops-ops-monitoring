@@ -76,8 +76,8 @@ pipeline {
                     conftest parse ${WORKSPACE}/terraform/main.tf --parser hcl2 | jq
 
                     # Verify & test
-                    conftest verify -p policy/terraform/
-                    conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p {WORKSPACE}/policy/terraform
+                    conftest verify -p ${WORKSPACE}/policy/terraform/
+                    conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p ${WORKSPACE}/policy/terraform/
                      # Terraform check (use hcl2 parser)
                     #conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p ${WORKSPACE}/policy/terraform  || exit 1
                 '''

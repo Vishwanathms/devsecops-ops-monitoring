@@ -3,8 +3,8 @@ package main
 # Deny if Dockerfile explicitly uses root user
 deny[msg] {
   some i
-  input[i].instruction == "user"
   lower(trim(input[i].value, " ")) == "root"
+  lower(input[i].instruction) == "user"
   msg = "❌ Dockerfile explicitly uses root user"
 }
 

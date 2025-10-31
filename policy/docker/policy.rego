@@ -1,21 +1,15 @@
 package main
 
-# Collect all USER values from the parsed Dockerfile, supporting both shapes:
-#  A) 2-D array: input[stage][index] -> { Cmd, Value[] }
-#  B) Object:    input.Commands[]    -> { Cmd, Value[] }
-
-users = us {
+# Find all USER values no matter how the parser shapes input
+users := us {
   us := [val |
-    stage := input[_]
-    instr := stage[_]
-    lower(instr.Cmd) == "user"
-    val := lower(trim(instr.Value[0], " "))
-  ]
-} else = us {
-  us := [val |
-    cmd := input.Commands[_]
-    lower(cmd.Cmd) == "user"
-    val := lower(trim(cmd.Value[0], " "))
+    some path, node
+    walk(input, [path, node])                 # recursively visit the whole input
+    is_object(node)
+    lower(object.get(node, "Cmd", "")) == "user"
+    vals := object.get(node, "Value", [])
+    count(vals) > 0
+    val := lower(trim(vals[0], " "))          # normalize " appuser "
   ]
 }
 

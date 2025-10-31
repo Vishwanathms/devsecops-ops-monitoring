@@ -55,8 +55,9 @@ pipeline {
                     sudo mv conftest /usr/local/bin/
 
                     echo "🔎 Running policy checks..."
-                    conftest test Dockerfile -p policy/
-                    conftest test terraform/ -p policy/
+                    conftest verify -p policy/
+                    conftest test Dockerfile --parser dockerfile -p policy/ || exit 1
+                    conftest test terraform/ --parser terraform -p policy/ || exit 1
                 '''
             }
         }

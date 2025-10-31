@@ -1,17 +1,18 @@
 package main
 
-# Collect all USER values from the parsed Dockerfile, regardless of input shape
+# Collect all USER values from the parsed Dockerfile, supporting both shapes:
+#  A) 2-D array: input[stage][index] -> { Cmd, Value[] }
+#  B) Object:    input.Commands[]    -> { Cmd, Value[] }
 
-# Shape A: input is a 2-D array (e.g., [[{Cmd,Value}, ...]])
 users = us {
-  us := [ val |
-    instr := input[_][_]
+  us := [val |
+    stage := input[_]
+    instr := stage[_]
     lower(instr.Cmd) == "user"
     val := lower(trim(instr.Value[0], " "))
   ]
 } else = us {
-  # Shape B: input is {Commands: [{Cmd,Value}, ...]}
-  us := [ val |
+  us := [val |
     cmd := input.Commands[_]
     lower(cmd.Cmd) == "user"
     val := lower(trim(cmd.Value[0], " "))
@@ -20,9 +21,7 @@ users = us {
 
 # ❌ Deny if any USER is root
 deny[msg] {
-  some v
-  v := users[_]
-  v == "root"
+  users[_] == "root"
   msg = "❌ Dockerfile explicitly uses root user"
 }
 

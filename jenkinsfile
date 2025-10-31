@@ -21,7 +21,7 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-                sh './venv/bin/python -m pytest tests/ --maxfail=1 --disable-warnings -q || echo "No tests yet"'
+                sh './venv/bin/python -m pytest --maxfail=1 --disable-warnings -q || echo "No tests yet"'
             }
         }
 

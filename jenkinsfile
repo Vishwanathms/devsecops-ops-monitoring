@@ -58,7 +58,7 @@ pipeline {
 
                     echo "🔎 Running policy checks..."
                     # Dockerfile check (explicit parser)
-                    conftest test Dockerfile --parser dockerfile -p policy/docker || exit 1
+                    conftest test ${WORKSPACE}/Dockerfile --parser dockerfile -p policy/docker || exit 1
 
                     # Terraform check (use hcl2 parser)
                     conftest test terraform/ --parser hcl2 -p policy/terraform  || exit 1

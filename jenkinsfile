@@ -72,9 +72,14 @@ pipeline {
                     # Dockerfile check (explicit parser)
                     conftest test ${WORKSPACE}/Dockerfile --parser dockerfile -p ${WORKSPACE}/policy/docker
 
+                    # See actual parsed shape (helps when debugging)
+                    conftest parse ${WORKSPACE}/terraform/ --parser hcl2 | jq
 
+                    # Verify & test
+                    conftest verify -p policy/terraform
+                    conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p {WORKSPACE}/policy/terraform
                      # Terraform check (use hcl2 parser)
-                    conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p ${WORKSPACE}/policy/terraform  || exit 1
+                    #conftest test ${WORKSPACE}/terraform/ --parser hcl2 -p ${WORKSPACE}/policy/terraform  || exit 1
                 '''
             }
         }

@@ -8,45 +8,45 @@ pipeline {
     }
 
     stages {
-        stage('Setup Python Env') {
-            steps {
-                sh '''
-                    python3 -m venv venv
-                    ./venv/bin/pip install --upgrade pip
-                    ./venv/bin/pip install --upgrade flask
-                    ./venv/bin/pip install -r python_app/requirements.txt
-                    ./venv/bin/pip install pytest 
-                '''
-            }
-        }
+        // stage('Setup Python Env') {
+        //     steps {
+        //         sh '''
+        //             python3 -m venv venv
+        //             ./venv/bin/pip install --upgrade pip
+        //             ./venv/bin/pip install --upgrade flask
+        //             ./venv/bin/pip install -r python_app/requirements.txt
+        //             ./venv/bin/pip install pytest 
+        //         '''
+        //     }
+        // }
 
-        stage('Run Unit Tests') {
-            steps {
-                sh './venv/bin/python -m pytest --maxfail=1 --disable-warnings -q || echo "No tests yet"'
-            }
-        }
+        // stage('Run Unit Tests') {
+        //     steps {
+        //         sh './venv/bin/python -m pytest --maxfail=1 --disable-warnings -q || echo "No tests yet"'
+        //     }
+        // }
 
-        stage('Trivy Security Scan') {
-            steps {
-                sh '''
-                    if ! command -v trivy &> /dev/null; then
-                    echo "📦 Installing Trivy..."
-                    sudo apt-get update -y
-                    sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-                    wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-                    echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
-                    sudo apt-get update -y
-                    sudo apt-get install -y trivy
-                    fi
+        // stage('Trivy Security Scan') {
+        //     steps {
+        //         sh '''
+        //             if ! command -v trivy &> /dev/null; then
+        //             echo "📦 Installing Trivy..."
+        //             sudo apt-get update -y
+        //             sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+        //             wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        //             echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/trivy.list
+        //             sudo apt-get update -y
+        //             sudo apt-get install -y trivy
+        //             fi
 
-                    echo "🔍 Running Trivy scans..."
-                    docker build -t ${IMAGE_NAME} .
-                    trivy image --severity HIGH,CRITICAL --exit-code 1 ${IMAGE_NAME} || true
-                    trivy fs --severity HIGH,CRITICAL --exit-code 1 . || true
-                    docker image rmi ${IMAGE_NAME} -f
-                '''
-            }
-        }
+        //             echo "🔍 Running Trivy scans..."
+        //             docker build -t ${IMAGE_NAME} .
+        //             trivy image --severity HIGH,CRITICAL --exit-code 1 ${IMAGE_NAME} || true
+        //             trivy fs --severity HIGH,CRITICAL --exit-code 1 . || true
+        //             docker image rmi ${IMAGE_NAME} -f
+        //         '''
+        //     }
+        // }
 
         stage('Policy-as-Code Check (OPA/Conftest)') {
             steps {

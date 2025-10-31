@@ -18,7 +18,7 @@ deny[msg] {
 
 # Deny if no USER directive exists (default = root)
 deny[msg] {
-  not user_defined
+  not user_instruction_found
   msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
 }
 

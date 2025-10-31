@@ -16,15 +16,19 @@ deny[msg] {
   msg = "❌ Policy Violation: Dockerfile explicitly uses root user"
 }
 
-# Deny if no USER directive exists (default = root)
+# ❌ Deny if Dockerfile has no USER directive (defaults to root)
 deny[msg] {
-  not user_instruction_found
+  not user_exists
   msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
 }
 
-# Helper: check if a USER directive exists
-user_defined {
+# ✅ Complete rule — always returns a value
+user_exists = true {
   some i
-  input[i].instruction == "user"
+  lower(input[i].instruction) == "user"
 }
 
+user_exists = false {
+  not some i
+  lower(input[i].instruction) == "user"
+}

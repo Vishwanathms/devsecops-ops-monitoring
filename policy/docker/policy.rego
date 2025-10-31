@@ -17,10 +17,17 @@ deny[msg] {
 }
 
 # ❌ Deny if Dockerfile has no USER directive (defaults to root)
+#deny[msg] {
+#  not user_exists
+#  msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
+#}
+
+# ❌ Deny if Dockerfile has no USER directive (defaults to root)
 deny[msg] {
-  not user_exists
+  count([i | lower(input[i].instruction) == "user"]) == 0
   msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
 }
+
 
 # ✅ Complete rule — always returns a value
 user_exists = true {
@@ -28,7 +35,4 @@ user_exists = true {
   lower(input[i].instruction) == "user"
 }
 
-user_exists = false {
-  not some i
-  lower(input[i].instruction) == "user"
-}
+

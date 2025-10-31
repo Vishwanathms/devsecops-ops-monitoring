@@ -1,16 +1,33 @@
 package main
 
-# ❌ Deny if Dockerfile explicitly runs as root
+# Collect all USER values from the parsed Dockerfile, regardless of input shape
+
+# Shape A: input is a 2-D array (e.g., [[{Cmd,Value}, ...]])
+users = us {
+  us := [ val |
+    instr := input[_][_]
+    lower(instr.Cmd) == "user"
+    val := lower(trim(instr.Value[0], " "))
+  ]
+} else = us {
+  # Shape B: input is {Commands: [{Cmd,Value}, ...]}
+  us := [ val |
+    cmd := input.Commands[_]
+    lower(cmd.Cmd) == "user"
+    val := lower(trim(cmd.Value[0], " "))
+  ]
+}
+
+# ❌ Deny if any USER is root
 deny[msg] {
-  instr := input[_][_]                       # flatten stages and instructions
-  lower(instr.Cmd) == "user"
-  val := lower(trim(instr.Value[0], " "))    # Value is an array; take the first item
-  val == "root"
+  some v
+  v := users[_]
+  v == "root"
   msg = "❌ Dockerfile explicitly uses root user"
 }
 
-# ❌ Deny if Dockerfile has no USER directive (defaults to root)
+# ❌ Deny if no USER directive exists (defaults to root)
 deny[msg] {
-  count([1 | instr := input[_][_]; lower(instr.Cmd) == "user"]) == 0
+  count(users) == 0
   msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
 }

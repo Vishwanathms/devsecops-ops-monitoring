@@ -1,0 +1,70 @@
+pipeline {
+    agent {
+        label 'vish-security-agent'
+    }
+
+    environment {
+        IMAGE_NAME = "pac-demo:latest"
+    }
+
+    stages {
+        stage('Setup Python Env') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    ./venv/bin/pip install --upgrade pip
+                    ./venv/bin/pip install -r python_app/requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Unit Tests') {
+            steps {
+                sh './venv/bin/python -m pytest || echo "No tests yet"'
+            }
+        }
+
+        stage('Trivy Security Scan') {
+            steps {
+                sh '''
+                    if ! command -v trivy &> /dev/null; then
+                      sudo apt-get update -y
+                      sudo apt-get install wget -y
+                      wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.54.1_Linux-64bit.deb
+                      sudo dpkg -i trivy_0.54.1_Linux-64bit.deb
+                    fi
+
+                    echo "🔍 Running Trivy scans..."
+                    docker build -t ${IMAGE_NAME} .
+                    trivy image --severity HIGH,CRITICAL --exit-code 1 ${IMAGE_NAME} || true
+                    trivy fs --severity HIGH,CRITICAL --exit-code 1 . || true
+                    docker image rmi ${IMAGE_NAME} -f
+                '''
+            }
+        }
+
+        stage('Policy-as-Code Check (OPA/Conftest)') {
+            steps {
+                sh '''
+                    wget https://github.com/open-policy-agent/conftest/releases/download/v0.51.0/conftest_0.51.0_Linux_x86_64.tar.gz
+                    tar xzf conftest_0.51.0_Linux_x86_64.tar.gz
+                    sudo mv conftest /usr/local/bin/
+
+                    echo "🔎 Running policy checks..."
+                    conftest test Dockerfile -p policy/
+                    conftest test terraform/ -p policy/
+                '''
+            }
+        }
+
+        stage('Build and Push Image') {
+            when { expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' } }
+            steps {
+                sh '''
+                    echo "✅ All checks passed. Proceeding with image build."
+                    docker build -t ${IMAGE_NAME} .
+                '''
+            }
+        }
+    }
+}

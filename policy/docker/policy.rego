@@ -8,9 +8,17 @@ deny[msg] {
   msg = "❌ Dockerfile explicitly uses root user"
 }
 
+# Deny if Dockerfile explicitly uses root user
+deny[msg] {
+  some i
+  lower(input[i].instruction) == "user"
+  re_match("(?i)^root$", trim(input[i].value, " "))
+  msg = "❌ Policy Violation: Dockerfile explicitly uses root user"
+}
+
 # Deny if no USER directive exists (default = root)
 deny[msg] {
-  not has_user_instruction
+  not user_present
   msg = "⚠️ Dockerfile has no USER directive (defaults to root)"
 }
 

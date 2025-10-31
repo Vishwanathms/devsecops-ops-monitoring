@@ -73,7 +73,7 @@ pipeline {
                     conftest test ${WORKSPACE}/Dockerfile --parser dockerfile -p ${WORKSPACE}/policy/docker
 
                     # See actual parsed shape (helps when debugging)
-                    conftest parse ${WORKSPACE}/terraform/ --parser hcl2 | jq
+                    conftest parse ${WORKSPACE}/terraform/main.tf --parser hcl2 | jq
 
                     # Verify & test
                     conftest verify -p policy/terraform/

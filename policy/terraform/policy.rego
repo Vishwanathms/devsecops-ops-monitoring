@@ -1,6 +1,9 @@
-package terraform
+package main
 
+# Case A: Classic map shape
 deny[msg] {
-  input.resource.aws_s3_bucket[_].acl == "public-read"
-  msg = "❌ S3 bucket should not be publicly accessible"
+  some name
+  val := lower(to_string(input.resource.aws_s3_bucket[name].acl))
+  val == "public-read"
+  msg := sprintf("❌ S3 bucket '%s' should not be publicly accessible", [name])
 }
